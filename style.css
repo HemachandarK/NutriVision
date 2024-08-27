@@ -1,0 +1,71 @@
+/* Profile Update Page Styles */
+.profile-update-page {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: auto;
+}
+
+.profile-update-title {
+    color: black;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+.profile-update-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.profile-update-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.profile-update-button:hover {
+    background-color: #45a049;
+}
+
+.back-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.back-button:hover {
+    background-color: #e53935;
+}
+/* Main Page*/
+
+/* Logout button position */
+.button-logout {
+    position: absolute;
+    top: 20px; /* Distance from the top */
+    right: 20px; /* Distance from the right */
+}
+
+
+
+
+
+
