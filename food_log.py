@@ -1,52 +1,45 @@
 import streamlit as st
-import mysql.connector
+from pymongo import MongoClient
 import food_reg
+from bson import ObjectId
+
 import pandas as pd
 from fuzzywuzzy import process
 from decimal import Decimal
 
+client = MongoClient("mongodb://localhost:27017/")
+db = client['food_det_db']  # Database name
+users_collection = db['user_details']  # Collection name
+goals_collection = db['goals'] 
+
 def verify_user(email, password):
     try:
-        conn = mysql.connector.connect(
-            host='localhost',  
-            user='root', 
-            password='hemsmysql3', 
-            database='food_det'  
-        )
-        cursor = conn.cursor()
-        query = "SELECT name,id FROM food_det WHERE email = %s AND password = %s"
-        cursor.execute(query, (email, password))
-        result = cursor.fetchone()
-        return result
-    except mysql.connector.Error as err:
+        # Query to find user with the given email and password
+        user = users_collection.find_one({"email": email, "password": password})
+        
+        if user:
+            # If user is found, return their name and id
+            return user['name'], str(user['_id'])
+        else:
+            # If no user is found, return None
+            return None
+    except Exception as err:
         st.error(f"Error: {err}")
-    finally:
-        if conn.is_connected():
-            cursor.close()
-            conn.close()
-    return None
+        return None
 
 def verify_user_goal(user_id):
-    result = None
     try:
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='hemsmysql3',
-            database='food_det'
-        )
-        cursor = conn.cursor()
-        query = "SELECT goal FROM goals WHERE uid=%s"
-        cursor.execute(query, (user_id,))
-        result = cursor.fetchone() 
-    except mysql.connector.Error as err:
+        # Query the MongoDB collection
+        result = goals_collection.find_one({"user_id": user_id})
+        
+        if result:
+            return result.get('goal', None)  # Return the goal if it exists
+        else:
+            return None  # User not found
+
+    except Exception as err:
         st.error(f"Error: {err}")
-    finally:
-        if 'cursor' in locals() and cursor is not None:
-            cursor.close()
-        if 'conn' in locals() and conn is not None and conn.is_connected():
-            conn.close()
-    return result
+        return None
 
 def log():
     st.title('Login to Food Recognition and Nutrition Analysis')
@@ -57,7 +50,7 @@ def log():
     password = st.text_input('Password', type='password')
     if st.button('New User? Go to Registration'):
         st.session_state.current_page = 'reg'
-        st.experimental_rerun()
+        st.rerun()
     if st.button('Login'):
         if email and password:
             user = verify_user(email, password)
@@ -65,7 +58,7 @@ def log():
                 st.success('Login successful!')
                 st.session_state.current_page = 'h_main'
                 st.session_state.current_user=user
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error('Invalid email or password. Please try again.')
         else:
@@ -106,11 +99,11 @@ def food_item(fp):
     with col1:
         if st.button('Back'):
             st.session_state.current_page = 'h_main'
-            st.experimental_rerun()
+            st.rerun()
     with col2:
         if st.button('Logout'):
             st.session_state.current_page = 'log'
-            st.experimental_rerun()
+            st.rerun()
 
 def h_main():
     st.header(f"Hi {st.session_state.current_user[0]}!")
@@ -121,66 +114,58 @@ def h_main():
     with col1:
         if st.button('Nutritional Analysis'):
             st.session_state.current_page = 'food_item'
-            st.experimental_rerun()
+            st.rerun()
     
     with col2:
         if st.button('Diet Management'):
             st.session_state.current_page = 'diet'
-            st.experimental_rerun()
+            st.rerun()
     
     with col3:
         if st.button('Update Profile'):
             st.session_state.current_page = 'up_prof'
-            st.experimental_rerun()
+            st.rerun()
     if st.button('Logout'):
         st.session_state.current_page = 'log'
-        st.experimental_rerun()
+        st.rerun()
 
 
         
-
-def goal_reg(x,g):
+def goal_reg(user_id, goal):
     try:
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',  
-            password='hemsmysql3',
-            database='food_det'  
+        # Upsert operation: Insert a new document if it does not exist, otherwise update the existing one
+        result = goals_collection.update_one(
+            
+            {"user_id": ObjectId(user_id)},  # Query to find the document
+            {"$set": {"goal": goal, "user_id": user_id}},  # Update operation
+            upsert=True  # Create a new document if no matching document is found
         )
-        cursor = conn.cursor()
-        query = """
-        INSERT INTO goals (goal,user_id,uid)
-        VALUES (%s, %s,%s)
-        """
-        cursor.execute(query, (g,x,x))
-        conn.commit()
-        st.success('Updated')
-    except mysql.connector.Error as err:
-        st.error(f"Error: {err}")
-    finally:
-        if conn.is_connected():
-            cursor.close()
-            conn.close()
 
-def goal_update(x,g):
-    try:
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',  
-            password='hemsmysql3',
-            database='food_det'  
-        )
-        cursor = conn.cursor()
-        query = """UPDATE goals SET goal = %s WHERE user_id = %s """
-        cursor.execute(query, (g,x))
-        conn.commit()
-        st.success('Updated')
-    except mysql.connector.Error as err:
+        if result.matched_count > 0:
+            st.success('Goal updated successfully!')
+        else:
+            st.success('Goal set successfully!')
+
+    except Exception as err:
         st.error(f"Error: {err}")
-    finally:
-        if conn.is_connected():
-            cursor.close()
-            conn.close()
+
+def goal_update(user_id, goal):
+   
+    try:
+        # Upsert operation: Insert a new document if it does not exist, otherwise update the existing one
+        result = goals_collection.update_one(
+            {"user_id": user_id},  # Query to find the document
+            {"$set": {"goal": goal, "user_id": user_id}},  # Update operation
+            upsert=True  # Create a new document if no matching document is found
+        )
+
+        if result.matched_count > 0:
+            st.success('Goal updated successfully!')
+        else:
+            st.success('Goal set successfully!')
+
+    except Exception as err:
+        st.error(f"Error: {err}")
 
 def food_search(f,d):
     f_list=[]
@@ -282,63 +267,55 @@ def calculate_calories(food_t, q):
 def get_det_user(d):
     result = None
     try:
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='hemsmysql3',
-            database='food_det'
-        )
-        cursor = conn.cursor()
-        query = "SELECT height,weight,age,gender,act_lvl FROM food_det WHERE id=%s"
-        cursor.execute(query, (d,))
-        result = cursor.fetchone() 
-    except mysql.connector.Error as err:
-        st.error(f"Error: {err}")
-    finally:
-        if 'cursor' in locals() and cursor is not None:
-            cursor.close()
-        if 'conn' in locals() and conn is not None and conn.is_connected():
-            conn.close()
+        # No need to connect to MySQL; MongoDB connection is used
+        user = users_collection.find_one({"_id": ObjectId(d)})
+        if user:
+            result = {
+                'height': user.get('height'),
+                'weight': user.get('weight'),
+                'age': user.get('age'),
+                'gender': user.get('gender'),
+                'activity_level': user.get('activity_level')
+            }
+    except Exception as e:
+        st.error(f"Error: {e}")
     return result
 
 def get_us_cat(d):
     result = None
     try:
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='hemsmysql3',
-            database='food_det'
-        )
-        cursor = conn.cursor()
-        query = "SELECT goal FROM goals WHERE uid=%s"
-        cursor.execute(query, (d,))
-        result = cursor.fetchone() 
-    except mysql.connector.Error as err:
-        st.error(f"Error: {err}")
-    finally:
-        if 'cursor' in locals() and cursor is not None:
-            cursor.close()
-        if 'conn' in locals() and conn is not None and conn.is_connected():
-            conn.close()
+        # No need to connect to MySQL; MongoDB connection is used
+        user_goal = goals_collection.find_one({"user_id": d})
+        if user_goal:
+            result = user_goal.get('goal')
+    except Exception as e:
+        st.error(f"Error: {e}")
     return result
 
+
 def diet(fp):
+    col1, col2, col3 = st.columns(3)
     st.header('Welcome')
-    d=int(st.session_state.current_user[1])
-    res=verify_user_goal(d)
+    user_id = st.session_state.current_user[1] 
+    # st.title(user_id)# user_id is a string, not an integer
+
+    res = verify_user_goal(user_id)
+    # st.title(res);
     if res:
-        st.subheader(f'Your Category: {res[0]}')
+        st.subheader(f'Your Category: {res}')
+        
         if st.button('Modify'):
             st.session_state.show_modify = True
-    
+        
         if 'show_modify' in st.session_state and st.session_state.show_modify:
             goal = st.selectbox('Weight Goal', ['Maintain Weight', 'Lose Weight', 'Gain Weight'])
             if st.button('Update'):
-                goal_update(d, goal)
+                goal_update(user_id, goal)
                 st.session_state.show_modify = False
                 st.session_state.current_page = 'diet'
-                st.experimental_rerun()
+                st.rerun()
+        
+        # Initialize session state lists if they do not exist
         if 'bk_list' not in st.session_state:
             st.session_state.bk_list = []
         if 'bkq_list' not in st.session_state:
@@ -351,18 +328,21 @@ def diet(fp):
             st.session_state.dn_list = []
         if 'dnq_list' not in st.session_state:
             st.session_state.dnq_list = []
+
         data = pd.read_csv(fp)
         food_choices = data['Name'].unique().tolist()
+        
+        # Breakfast
         food_bk = st.selectbox('Enter Your Breakfast', options=food_choices)
-        # quantity,cup,grams
         qbn = int(st.number_input('Enter the Quantity for Breakfast', format="%.0f"))
         qb = st.selectbox('BreakFast Quantity', ['Grams', 'Cups', 'Pieces'])
-        if st.button('Add BreakFast'):
+        if st.button('Add Breakfast'):
             if food_bk:
                 st.session_state.bk_list.append(food_bk)
                 st.session_state.bkq_list.append(qbn)
-                st.session_state.food_bk=''
                 st.success('Added')
+        
+        # Lunch
         food_ln = st.selectbox('Enter Your Lunch', options=food_choices)
         qln = int(st.number_input('Enter the Quantity for Lunch', format="%.0f"))
         ql = st.selectbox('Lunch Quantity', ['Grams', 'Cups', 'Pieces'])
@@ -370,8 +350,9 @@ def diet(fp):
             if food_ln:
                 st.session_state.ln_list.append(food_ln)
                 st.session_state.lnq_list.append(qln)
-                st.session_state.food_ln=''
                 st.success('Added')
+        
+        # Dinner
         food_dn = st.selectbox('Enter Your Dinner', options=food_choices)
         qdn = int(st.number_input('Enter the Quantity for Dinner', format="%.0f"))
         qd = st.selectbox('Dinner Quantity', ['Grams', 'Cups', 'Pieces'])
@@ -379,52 +360,62 @@ def diet(fp):
             if food_dn:
                 st.session_state.dn_list.append(food_dn)
                 st.session_state.dnq_list.append(qdn)
-                st.session_state.food_dn=''
                 st.success('Added')
-        data = pd.read_csv(fp)
-        col1, col2, col3 = st.columns(3)
+        
+        
+        
         with col1:
             if st.button('Calculate'):
-                rst1=food_search(st.session_state.bk_list,data)
-                rst2=food_search(st.session_state.ln_list,data)
-                rst3=food_search(st.session_state.dn_list,data)
+                rst1 = food_search(st.session_state.bk_list, data)
+                rst2 = food_search(st.session_state.ln_list, data)
+                rst3 = food_search(st.session_state.dn_list, data)
+                
                 if rst1 or rst2 or rst3:
-                        res_det=get_det_user(d)
-                        res_det_cat=get_us_cat(d)
-                        rs1=0
-                        rs2=0
-                        rs3=0
-                        if st.session_state.bkq_list:
-                            rs1=calculate_calories(rst1,st.session_state.bkq_list)
-                        if st.session_state.lnq_list:
-                            rs2=calculate_calories(rst2,st.session_state.lnq_list)
-                        if st.session_state.dnq_list:
-                            rs3=calculate_calories(rst3,st.session_state.dnq_list)
-                        rs=to_float(rs1)+to_float(rs2)+to_float(rs3)
-                        daily_cal=cal_daily(res_det[0],res_det[1],res_det[2],res_det[3],res_det[4],res_det_cat[0])
-                        st.write(f'Total Calories Consumed: {rs}')
-                        st.write(f'Daily Caloric Goal: {daily_cal}')
+                    res_det = get_det_user(user_id)
+                    res_det_cat = get_us_cat(user_id)
+                    rs1 = rs2 = rs3 = 0
+                    if st.session_state.bkq_list:
+                        rs1 = calculate_calories(rst1, st.session_state.bkq_list)
+                    if st.session_state.lnq_list:
+                        rs2 = calculate_calories(rst2, st.session_state.lnq_list)
+                    if st.session_state.dnq_list:
+                        rs3 = calculate_calories(rst3, st.session_state.dnq_list)
+                    
+                    total_calories = rs1 + rs2 + rs3
+                    daily_caloric_goal = cal_daily(
+                        res_det['height'],
+                        res_det['weight'],
+                        res_det['age'],
+                        res_det['gender'],
+                        res_det['activity_level'],
+                        res_det_cat
+                    )
+                    
+                    st.write(f'Total Calories Consumed: {total_calories}')
+                    st.write(f'Daily Caloric Goal: {daily_caloric_goal}')
                 else:
                     st.write('Food item not found. Please check the spelling or try another item.')
-
     else:
         goal = st.selectbox('Weight Goal', ['Maintain Weight', 'Lose Weight', 'Gain Weight'])
         if st.button('Submit'):
-            goal_reg(d,goal)
+            goal_reg(user_id,goal)
             st.session_state.current_page = 'diet'
-            st.experimental_rerun()
+            st.rerun()
+        
     with col2:
         if st.button('Clear'):
             st.session_state.bk_list = []
             st.session_state.bkq_list = []
-            st.session_state.lnq_list = []
             st.session_state.ln_list = []
-            st.session_state.dnq_list = []
+            st.session_state.lnq_list = []
             st.session_state.dn_list = []
+            st.session_state.dnq_list = []
+
     with col3:
         if st.button('Back'):
             st.session_state.current_page = 'h_main'
-            st.experimental_rerun()
+            st.rerun()
+
     if st.button('Logout'):
         st.session_state.bk_list = []
         st.session_state.bkq_list = []
@@ -433,10 +424,10 @@ def diet(fp):
         st.session_state.dnq_list = []
         st.session_state.dn_list = []
         st.session_state.current_page = 'log'
-        st.experimental_rerun()
+        st.rerun()
+
 def up_prof():
     inject_css()
-    #st.markdown('<div class="profile-update-page">', unsafe_allow_html=True)
     st.markdown('<h1 class="profile-update-title">Update Profile</h1>', unsafe_allow_html=True)
 
     with st.form(key='update_form', clear_on_submit=True):
@@ -448,31 +439,29 @@ def up_prof():
         submit_button = st.form_submit_button('Submit', use_container_width=True)
         if submit_button:
             try:
-                conn = mysql.connector.connect(
-                    host='localhost',
-                    user='root',  
-                    password='hemsmysql3',
-                    database='food_det'  
+                user_id = st.session_state.current_user[1]  # Assuming this is the ObjectId string
+                result = users_collection.update_one(
+                    {"_id": ObjectId(user_id)},
+                    {"$set": {
+                        "age": age,
+                        "height": height,
+                        "weight": weight,
+                        "activity_level": act
+                    }}
                 )
-                cursor = conn.cursor()
-                query = """
-                UPDATE food_det SET age=%s, height=%s, weight=%s, act_lvl=%s WHERE id=%s"""
-                cursor.execute(query, (age, height, weight, act, st.session_state.current_user[1]))
-                conn.commit()
+                if result.modified_count > 0:
+                    st.success('User details updated successfully!')
+                else:
+                    st.warning('No changes made.')
+            except Exception as e:
+                st.error(f"Error: {e}")
 
-                st.success('User details submitted successfully! Please Refresh the Page')
-            except mysql.connector.Error as err:
-                st.error(f"Error: {err}")
-            finally:
-                if conn.is_connected():
-                    cursor.close()
-                    conn.close()
-    
     if st.button('Back'):
         st.session_state.current_page = 'h_main'
-        st.experimental_rerun()
+        st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 def inject_css():
     with open('style.css') as f:
@@ -497,6 +486,7 @@ def main():
     elif st.session_state.current_page == 'up_prof':
         up_prof()
 
+    
 
 if __name__ == '__main__':
     main()

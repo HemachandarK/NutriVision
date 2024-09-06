@@ -1,9 +1,15 @@
 import streamlit as st
-import mysql.connector
-import food_log
+from pymongo import MongoClient
+
+# Connect to MongoDB
+client = MongoClient("mongodb://localhost:27017/")
+db = client['food_det_db']  # Database
+users_collection = db['user_details']  # Collection for storing user details
+
 def reg():
     st.title('Food Recognition and Nutrition Analysis')
     st.header('User Details')
+    
     name = st.text_input('Name', max_chars=30) 
     email = st.text_input('Email') 
     password = st.text_input('Password', max_chars=30, type='password') 
@@ -11,34 +17,26 @@ def reg():
     age = st.number_input('Age', min_value=0, max_value=120, step=1) 
     height = st.number_input('Height (cm)', min_value=0.0, max_value=300.0, step=0.1, format='%f')
     weight = st.number_input('Weight (kg)', min_value=0.0, max_value=500.0, step=0.1, format='%f')
-    act = st.selectbox('Activity Level', ['sedentary', 'lightly active', 'moderately active','very active','extra active'])
+    act = st.selectbox('Activity Level', ['sedentary', 'lightly active', 'moderately active', 'very active', 'extra active'])
+    
     if st.button('Submit'):
         if name and email and password and age > 0:
-            # Database connection
+            # Insert user details into MongoDB
             try:
-                conn = mysql.connector.connect(
-                    host='localhost',
-                    user='root',  
-                    password='hemsmysql3',
-                    database='food_det'  
-                )
-                cursor = conn.cursor()
-                query = """
-                INSERT INTO food_det (name, email, password, gender, age, height, weight,act_lvl)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """
-                cursor.execute(query, (name, email, password, gender, age, height, weight,act))
-                conn.commit()
+                user_data = {
+                    'name': name,
+                    'email': email,
+                    'password': password,
+                    'gender': gender,
+                    'age': age,
+                    'height': height,
+                    'weight': weight,
+                    'activity_level': act
+                }
                 
+                users_collection.insert_one(user_data)  # Insert into MongoDB
                 st.success('User details submitted successfully! Please Refresh the Page')
-            except mysql.connector.Error as err:
-                st.error(f"Error: {err}")
-            finally:
-                if conn.is_connected():
-                    cursor.close()
-                    conn.close()
+            except Exception as e:
+                st.error(f"Error: {e}")
         else:
             st.error('Please fill all the required fields')
-    
-        
-
