@@ -2,6 +2,7 @@ import streamlit as st
 from pymongo import MongoClient
 import food_reg
 from bson import ObjectId
+from streamlitimage import findimage
 
 import pandas as pd
 from fuzzywuzzy import process
@@ -104,7 +105,7 @@ def food_item(fp):
         if st.button('Logout'):
             st.session_state.current_page = 'log'
             st.rerun()
-
+            
 def h_main():
     st.header(f"Hi {st.session_state.current_user[0]}!")
 
@@ -128,6 +129,7 @@ def h_main():
     if st.button('Logout'):
         st.session_state.current_page = 'log'
         st.rerun()
+
 
 
         
@@ -468,11 +470,12 @@ def inject_css():
         css = f.read()
     st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
 
+
 def main():
     inject_css()
     if 'current_page' not in st.session_state:
         st.session_state.current_page = 'log'
-    
+   
     if st.session_state.current_page == 'log':
         log()
     elif st.session_state.current_page == 'reg':
@@ -485,6 +488,12 @@ def main():
         diet('food.csv')
     elif st.session_state.current_page == 'up_prof':
         up_prof()
+   
+    
+    
+   
+        
+    
 
     
 
