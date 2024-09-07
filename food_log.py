@@ -471,7 +471,7 @@ def inject_css():
     st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
 
 
-def main():
+def main_1():
     inject_css()
     if 'current_page' not in st.session_state:
         st.session_state.current_page = 'log'
@@ -497,5 +497,3 @@ def main():
 
     
 
-if __name__ == '__main__':
-    main()
