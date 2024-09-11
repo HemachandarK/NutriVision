@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def foodsuggest():
-    dataset_path = "dataset.csv"
+    dataset_path = "modified_dataset.csv"
     df = pd.read_csv(dataset_path)
 
     # Set the title of the Streamlit app
