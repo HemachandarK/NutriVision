@@ -8,6 +8,10 @@ import pandas as pd
 from fuzzywuzzy import process
 from decimal import Decimal
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 client = MongoClient("mongodb://localhost:27017/")
 db = client['food_det_db']  # Database name
 users_collection = db['user_details']  # Collection name
@@ -277,7 +281,8 @@ def get_det_user(d):
                 'weight': user.get('weight'),
                 'age': user.get('age'),
                 'gender': user.get('gender'),
-                'activity_level': user.get('activity_level')
+                'activity_level': user.get('activity_level'),
+                'email': user.get('email')
             }
     except Exception as e:
         st.error(f"Error: {e}")
@@ -294,6 +299,43 @@ def get_us_cat(d):
         st.error(f"Error: {e}")
     return result
 
+def send_email(user_email, total_calories, daily_caloric_goal):
+    sender_email = "dietmanagement48@gmail.com"
+    sender_password = "bqma bdxj nnja hgkd"
+    subject = "Your Daily Caloric Summary-Reminder"
+    
+    # Create the email content
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = user_email
+    message["Subject"] = subject
+    
+    body = f"""
+    Hello,
+
+    Here is your daily caloric summary:
+
+    Total Calories Consumed: {total_calories}
+    Daily Caloric Goal: {daily_caloric_goal}
+
+    Keep up with your goals!
+
+    Best,
+    Your Diet App Team
+    """
+    
+    message.attach(MIMEText(body, "plain"))
+    
+    # Send email using SMTP
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, user_email, message.as_string())
+        server.close()
+        st.success('Email sent successfully!')
+    except Exception as e:
+        st.error(f"Error sending email: {e}")
 
 def diet(fp):
     col1, col2, col3 = st.columns(3)
@@ -395,6 +437,9 @@ def diet(fp):
                     
                     st.write(f'Total Calories Consumed: {total_calories}')
                     st.write(f'Daily Caloric Goal: {daily_caloric_goal}')
+                    user_email = res_det['email']
+                    send_email(user_email,total_calories,daily_caloric_goal)
+                    
                 else:
                     st.write('Food item not found. Please check the spelling or try another item.')
     else:
