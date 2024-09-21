@@ -63,7 +63,6 @@ def main():
                         with open(path, 'wb') as f:
                             f.write(file_data)
 
-                        st.write(f"Downloaded attachment: {part['filename']}")
 
     st.write("Completed PDF extraction!")
 
