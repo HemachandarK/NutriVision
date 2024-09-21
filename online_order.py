@@ -41,16 +41,11 @@ def main():
         headr = payld['headers']
 
         subject = None
-        sender = None
 
         for one in headr:
             if one['name'] == 'Subject' and 'Zomato' in one['value']:
                 subject = one['value']
 
-            if one['name'] == 'From' and 'rithik joshua <rithikkumar77777@gmail.com>' in one['value'].lower():
-                sender = one['value']
-
-        # Check if both subject and sender match Zomato
         if subject and sender:
             if 'parts' in payld:
                 for part in payld['parts']:
