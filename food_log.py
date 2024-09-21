@@ -7,7 +7,7 @@ from streamlitimage import findimage
 import pandas as pd
 from fuzzywuzzy import process
 from decimal import Decimal
-
+import online_order
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -114,7 +114,7 @@ def h_main():
     st.header(f"Hi {st.session_state.current_user[0]}!")
 
     # Place other buttons in the main column
-    col1, col2, col3 = st.columns(3)  # Creates 3 equally spaced columns
+    col1, col2, col3 ,col4 = st.columns(4)  # Creates 3 equally spaced columns
     
     with col1:
         if st.button('Nutritional Analysis'):
@@ -129,6 +129,10 @@ def h_main():
     with col3:
         if st.button('Update Profile'):
             st.session_state.current_page = 'up_prof'
+            st.rerun()
+    with col4:
+        if st.button('Check My Orders'):
+            st.session_state.current_page = 'online_order'
             st.rerun()
     if st.button('Logout'):
         st.session_state.current_page = 'log'
@@ -533,6 +537,8 @@ def main_1():
         diet('food.csv')
     elif st.session_state.current_page == 'up_prof':
         up_prof()
+    elif st.session_state.current_page == 'online_order':
+        online_order.main()
    
     
     
