@@ -46,7 +46,7 @@ def main():
             if one['name'] == 'Subject' and 'Zomato' in one['value']:
                 subject = one['value']
 
-        if subject and sender:
+        if subject:
             if 'parts' in payld:
                 for part in payld['parts']:
                     if part['filename'] and part['mimeType'] == 'application/pdf' and 'order_invoice' in part['filename'].lower():  # Check for PDF
