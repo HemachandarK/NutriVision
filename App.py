@@ -21,7 +21,7 @@ def main():
     elif page == "DiseaseDescription":
         description()
     
-    elif page == "DiseasePredict":
+    elif page == "DiseasePrediction":
         predict()
     elif page == "Disease":
         disease()

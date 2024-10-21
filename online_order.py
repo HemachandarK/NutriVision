@@ -45,24 +45,25 @@ def main():
         for one in headr:
             if one['name'] == 'Subject' and 'Zomato' in one['value']:
                 subject = one['value']
-
+        
+        # Check if both subject and sender match Zomato
         if subject:
             if 'parts' in payld:
                 for part in payld['parts']:
-                    if part['filename'] and part['mimeType'] == 'application/pdf' and 'order_invoice' in part['filename'].lower():  # Check for PDF
-                        attachment_id = part['body']['attachmentId']
-                        attachment = GMAIL.users().messages().attachments().get(
-                            userId=user_id, messageId=m_id, id=attachment_id
-                        ).execute()
+                        if part['mimeType'] == 'application/pdf' and 'order_invoice' in part['filename'].lower():
+                            
+                            attachment_id = part['body']['attachmentId']
+                            attachment = GMAIL.users().messages().attachments().get(
+                                userId=user_id, messageId=m_id, id=attachment_id
+                            ).execute()
 
-                        # Decode attachment
-                        file_data = base64.urlsafe_b64decode(attachment['data'].encode('UTF-8'))
-                        
-                        # Save PDF to a file
-                        path = os.path.join("attachments", "food_det.pdf")
-                        with open(path, 'wb') as f:
-                            f.write(file_data)
-
+                            # Decode attachment
+                            file_data = base64.urlsafe_b64decode(attachment['data'].encode('UTF-8'))
+                            
+                            path = os.path.join("attachments", "food_det.pdf")
+                            
+                            with open(path, 'wb') as f:
+                                f.write(file_data)
 
     st.write("Completed PDF extraction!")
 
