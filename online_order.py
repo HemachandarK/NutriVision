@@ -1,5 +1,6 @@
 import streamlit as st
 from apiclient import discovery
+import json
 from httplib2 import Http
 from oauth2client import file, client, tools
 import base64
@@ -18,12 +19,6 @@ from httplib2 import Http
 
 def online_order():
     client_secret = st.secrets["client_secret"]
-    client_secret_dict = json.loads(client_secret)
-
-    # Write client_secret.json to file dynamically
-    with open('client_secret.json', 'w') as f:
-        json.dump(client_secret_dict, f)
-    st.write("Welcome")
 
     SCOPES = ['https://www.googleapis.com/auth/gmail.modify',
             'https://www.googleapis.com/auth/userinfo.email',
