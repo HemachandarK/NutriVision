@@ -102,7 +102,7 @@ def food_item(fp):
         else:
             st.write('Please enter a food item.')
     
-    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+    col1, col2= st.columns(2)
     with col1:
         if st.button('Back'):
             st.session_state.current_page = 'h_main'
