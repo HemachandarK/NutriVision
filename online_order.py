@@ -9,17 +9,30 @@ import pdfplumber
 import re
 import pandas as pd
 from fuzzywuzzy import process
-def main():
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from googleapiclient import discovery
+from oauth2client import file, client, tools
+from httplib2 import Http
+
+def online_order():
     st.write("Welcome")
 
-    SCOPES = 'https://www.googleapis.com/auth/gmail.modify'
+    SCOPES = ['https://www.googleapis.com/auth/gmail.modify',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile']
     store = file.Storage('storage.json')
     creds = store.get()
     if not creds or creds.invalid:
         flow = client.flow_from_clientsecrets('client_secret.json', SCOPES)
         creds = tools.run_flow(flow, store)
     GMAIL = discovery.build('gmail', 'v1', http=creds.authorize(Http()))
+    user_info_service = discovery.build('oauth2', 'v2', http=creds.authorize(Http()))
+    user_info = user_info_service.userinfo().get().execute()
 
+    # Retrieve and print the user's email address
+    email = user_info['email']
     user_id = 'me'
     today = datetime.utcnow().date()
     start_date = today
@@ -65,16 +78,13 @@ def main():
                             with open(path, 'wb') as f:
                                 f.write(file_data)
 
-    st.write("Completed PDF extraction!")
 
-    # Function to extract food details from the PDF
     def extract_food_details_from_pdf(pdf_path):
         food_details = []
         with pdfplumber.open(pdf_path) as pdf:
             for page in pdf.pages:
                 text = page.extract_text()
 
-                # Pattern to extract food details (Assume format "2 x Malai Meal")
                 pattern = r"(\d+) x ([\w\s]+) (\d+ \d+ \d+)"
                 matches = re.findall(pattern, text)
 
@@ -144,6 +154,44 @@ def main():
                 
         return int(res)
 
+
+    def send_email(user_email, total_calories):
+        sender_email = "dietmanagement48@gmail.com"
+        sender_password = "bqma bdxj nnja hgkd"
+        subject = "Your Daily Caloric Summary-Reminder"
+        
+        # Create the email content
+        message = MIMEMultipart()
+        message["From"] = sender_email
+        message["To"] = user_email
+        message["Subject"] = subject
+        
+        body = f"""
+        Hello,
+
+        Here is your daily caloric summary:
+
+        Total Calories Consumed: {total_calories}
+
+        Keep up with your goals!
+
+        Best,
+        Your Diet App Team
+        """
+        
+        message.attach(MIMEText(body, "plain"))
+        
+        # Send email using SMTP
+        try:
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, user_email, message.as_string())
+            server.close()
+            st.success('Email sent successfully!')
+        except Exception as e:
+            st.error(f"Error sending email: {e}")
+
     # Path to your PDF and CSV
     pdf_path = "attachments/food_det.pdf"  # Path to the downloaded PDF
 
@@ -161,7 +209,5 @@ def main():
     macron_det=food_search(food_name_list,data)
     res=calculate_calories(macron_det,food_quantity)
     rs=to_float(res)
-    st.write(f'Total Calories:{res}')    
-
-
-
+    st.write(f'Total Calories:{res}')
+    send_email(email,res)

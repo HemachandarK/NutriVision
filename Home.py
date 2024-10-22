@@ -1,33 +1,44 @@
 import streamlit as st
 from streamlit_scroll_navigation import scroll_navbar
+from pymongo import MongoClient
 from food_log import main_1
 from streamlitimage import findimage
+import smtplib
+from email.mime.text import MIMEText
+from datetime import datetime, timedelta
+import threading
+import time
+
 
 def home():
+    client = MongoClient('mongodb://localhost:27017/')
+    db = client.food_det_db
+    users_collection = db.user_details
     anchor_ids = ["About", "Features", "Nutrient", "Login", "Contact"]
-    anchor_icons = ["info-circle", "lightbulb", "gear", "tag", "envelope"]
     
-
-    # Custom styles
     st.markdown("""
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Aldrich&display=swap');
             * {
                 margin: 0;
                 padding: 0;
                 list-style-type: none;
             }
             body {
+                font-family:Aldrich;
                 background: #4CAF50;  /* Main background color */
                 color: #fff;  /* White text color */
             }
             
-            h2, h3, h4, h5, h6 {  /* Target all header tags */
+            h2, h3, h4, h5, h6 {
+                font-family:Aldrich;  /* Target all header tags */
                 color:#800080;  /* Highlight color for section headers */
                 font-size: 28px; /* Increase subheader font size */
             }
 
             p {
-                color: #00C000;  /* Color for paragraph text */
+                font-family:Aldrich;
+                color: #140D18;  /* Color for paragraph text */
                 font-size: 20px; /* Increase paragraph font size */
             }
 
@@ -49,18 +60,21 @@ def home():
         orientation="horizontal",
         override_styles={
             "navbarButtonBase": {
+                "font-family":"Aldrich",
                 "backgroundColor": "white",  # White background
-                "color": "#008000",  # Purple text color
+                "color": "#111011",  # Purple text color
                 "fontSize": "14px",  # Smaller font size
                 "padding": "8px 12px",  # Reduced padding for smaller button size
                 "borderRadius": "10px",  # Rounded corners for buttons
                 "border": "2px solid #800080",  # Purple border
             },
             "navbarButtonHover": {
-                "backgroundColor": "#98FF98",  # Light green background on hover
-                "color": "#008000",  # Dark green text color on hover
+                "font-family":"Aldrich",
+                "backgroundColor": "#dedcff",  # Light green background on hover
+                "color": "#111011",  # Dark green text color on hover
             },
             "navigationBarBase": {
+                "font-family":"Aldrich",
                 "backgroundColor": "#ffffff",  # White background for the navbar
                 "padding": "5px",  # Reduced padding for the navbar
                 "borderRadius": "10px",  # Rounded corners for navbar
@@ -70,8 +84,6 @@ def home():
     )
 
 
-
-    # About Section
     st.subheader("About", anchor="About")
     st.markdown("""
         <div style="margin-bottom: 20px;">
@@ -111,7 +123,7 @@ def home():
                 transition: background-color 0.3s; /* Smooth transition for hover */
             }
             .feature-box:hover {
-                background-color: #98FF98; /* Light green on hover */
+                background-color: #dedcff; /* Light green on hover */
             }
         </style>
         <div style="display: flex; justify-content: space-around; margin: 20px 0;">
@@ -130,8 +142,6 @@ def home():
     """, unsafe_allow_html=True)
 
 
-
-    # Vision Section
     st.subheader("RealTime nutrient Analysis", anchor="Nutrient")
     findimage()
 
@@ -160,6 +170,52 @@ def home():
         </div>
     """, unsafe_allow_html=True)
 
+
+    def send_email(to_email, subject, body):
+        msg = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From'] = "dietmanagement48@gmail.com"
+        msg['To'] = to_email
+
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login("dietmanagement48@gmail.com", "bqma bdxj nnja hgkd")
+            server.sendmail(msg['From'], msg['To'], msg.as_string())
+
+    # Reminder Check Function
+    def check_updates_and_send_emails():
+        while True:
+            current_time = datetime.utcnow()
+            breakfast_deadline = current_time.replace(hour=10, minute=50, second=0, microsecond=0)
+            lunch_deadline = current_time.replace(hour=15, minute=0, second=0, microsecond=0)
+            dinner_deadline = current_time.replace(hour=20, minute=0, second=0, microsecond=0)
+
+            users = users_collection.find()
+
+            for user in users:
+                last_update = user['last_update']
+                email = user['email']
+                if last_update:
+                    time_since_last_update = current_time - last_update
+
+                    # Check for breakfast reminder
+                    if current_time < breakfast_deadline and time_since_last_update > timedelta(hours=3):
+                        send_email(email, "Breakfast Reminder", "Please update your breakfast details.")
+
+                    # Check for lunch reminder
+                    if current_time >= breakfast_deadline and current_time < lunch_deadline and time_since_last_update > timedelta(hours=5):
+                        send_email(email, "Lunch Reminder", "Please update your lunch details.")
+
+                    # Check for dinner reminder
+                    if current_time >= lunch_deadline and current_time < dinner_deadline and time_since_last_update > timedelta(hours=5):
+                        send_email(email, "Dinner Reminder", "Please update your dinner details.")
+
+            # Sleep for a while before checking again
+            time.sleep(3600)  # Check every hour
+
+    # Start the reminder thread
+    reminder_thread = threading.Thread(target=check_updates_and_send_emails)
+    reminder_thread.start()
 
 
 home()

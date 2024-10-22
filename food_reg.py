@@ -1,6 +1,9 @@
 import streamlit as st
 from pymongo import MongoClient
-
+from datetime import datetime
+import pytz
+ist = pytz.timezone('Asia/Kolkata')
+ist_time = datetime.now(ist)
 # Connect to MongoDB
 client = MongoClient("mongodb://localhost:27017/")
 db = client['food_det_db']  # Database
@@ -31,7 +34,8 @@ def reg():
                     'age': age,
                     'height': height,
                     'weight': weight,
-                    'activity_level': act
+                    'activity_level': act,
+                    'last_update':ist_time
                 }
                 
                 users_collection.insert_one(user_data)  # Insert into MongoDB

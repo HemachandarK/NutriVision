@@ -7,11 +7,14 @@ from streamlitimage import findimage
 import pandas as pd
 from fuzzywuzzy import process
 from decimal import Decimal
-import online_order
+from online_order import online_order
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
+from datetime import datetime
+import pytz
+ist = pytz.timezone('Asia/Kolkata')
+ist_time = datetime.now(ist)
 client = MongoClient("mongodb://localhost:27017/")
 db = client['food_det_db']  # Database name
 users_collection = db['user_details']  # Collection name
@@ -442,7 +445,11 @@ def diet(fp):
                     st.write(f'Daily Caloric Goal: {daily_caloric_goal}')
                     user_email = res_det['email']
                     send_email(user_email,total_calories,daily_caloric_goal)
-                    
+                    users_collection.update_one(
+                        { 'email':user_email },
+                        { '$set': { 'last_update': ist_time } }
+                    )
+                                    
                 else:
                     st.write('Food item not found. Please check the spelling or try another item.')
     else:
@@ -537,7 +544,7 @@ def main_1():
     elif st.session_state.current_page == 'up_prof':
         up_prof()
     elif st.session_state.current_page == 'online_order':
-        online_order.main()
+        online_order()
    
     
     
