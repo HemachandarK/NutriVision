@@ -37,7 +37,7 @@ def online_order():
             scope=SCOPES,
             redirect_uri=client_secret["redirect_uris"][0]  # Use the first redirect URI
         )
-        creds = tools.run_flow(flow, store, tools.argparser.parse_args(args=['--noauth_local_webserver']))
+        creds = tools.run_flow(flow, store)
         
     GMAIL = discovery.build('gmail', 'v1', http=creds.authorize(Http()))
     user_info_service = discovery.build('oauth2', 'v2', http=creds.authorize(Http()))
