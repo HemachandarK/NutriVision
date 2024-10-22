@@ -47,10 +47,9 @@ def verify_user_goal(user_id):
         return None
 
 def log():
-    st.title('Login to Food Recognition and Nutrition Analysis')
+  
 
-    # Login form
-    st.header('User Login')
+   
     email = st.text_input('Email')
     password = st.text_input('Password', type='password')
     if st.button('New User? Go to Registration'):

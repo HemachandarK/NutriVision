@@ -76,15 +76,14 @@ def findimage():
         index = np.argmax(prediction)
         return category[index][1]
 
-    # Text input for manual food name entry
-    manual_food_name = st.text_input("Enter food name for nutrient details:")
+ 
 
     if uploaded_image is not None:
         food_name = predict_image(uploaded_image, model)
         st.write(f"Prediction: {food_name}")
 
     # Use the predicted food name or manual input food name
-    final_food_name = manual_food_name if manual_food_name else (food_name if uploaded_image is not None else None)
+    final_food_name = food_name if uploaded_image is not None else None;
 
     if final_food_name:
         st.title("KNOW YOUR FOOD CALORIE...")

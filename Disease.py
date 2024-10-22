@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+def load_css():
+    with open("style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        
 
 def disease():
     data_path = "modified_dataset.csv"  # Replace with the correct path if different
@@ -34,3 +38,4 @@ def disease():
                 st.write("No food suggestions found for the given disease and region.")
         else:
             st.write("Please enter both a disease name and a region to get food suggestions.")
+    load_css()

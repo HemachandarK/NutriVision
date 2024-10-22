@@ -1,3 +1,16 @@
+/* Main Page Green Theme */
+.stTitle {
+    color: #004d00; /* Dark green for title (h1) */
+}
+
+.stHeader {
+    color: #006600; /* Slightly lighter green for headers (h2, h3) */
+}
+
+.stText {
+    color: #008000; /* Light green for regular text */
+}
+
 /* Profile Update Page Styles */
 .profile-update-page {
     background-color: #ffffff;
@@ -7,6 +20,26 @@
     max-width: 600px;
     margin: auto;
 }
+
+/* CSS for Green Themed Content */
+.stTitle {
+    color: #004d00; /* Dark green for title */
+}
+
+.overview-section h1 {
+    color: #006600; /* Medium green for headers */
+}
+
+.overview-section h2 {
+    color: #006600; /* Medium green for headers */
+}
+
+.overview-section p {
+    color: #008000; /* Light green for paragraphs */
+    font-size: 16px;
+    line-height: 1.6;
+}
+
 
 .profile-update-title {
     color: black;
@@ -21,7 +54,7 @@
 }
 
 .profile-update-button {
-    background-color: #4CAF50;
+    background-color: #4CAF50; /* Green for buttons */
     color: white;
     border: none;
     padding: 10px;
@@ -38,34 +71,8 @@
     background-color: #45a049;
 }
 
-.back-button {
-    background-color: #f44336;
-    color: white;
-    border: none;
-    padding: 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 10px 0;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.back-button:hover {
-    background-color: #e53935;
-}
-/* Main Page*/
-
-/* Logout button position */
 .button-logout {
     position: absolute;
-    top: 20px; /* Distance from the top */
-    right: 20px; /* Distance from the right */
+    top: 20px;
+    right: 20px;
 }
-
-
-
-
-
-
