@@ -1,0 +1,13 @@
+streamlit
+pymongo
+Pillow
+tensorflow
+google-api-python-client
+oauth2client
+httplib2
+pytz
+fuzzywuzzy
+python-Levenshtein
+plotly
+pdfplumber
+pandas
