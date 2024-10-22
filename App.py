@@ -15,7 +15,7 @@ from FoodSuggest import foodsuggest
 
 
 def home():
-    client = MongoClient('mongodb://localhost:27017/')
+    client=MongoClient('mongodb+srv://hemachandark333:hems@cluster0.45yyp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
     db = client.food_det_db
     users_collection = db.user_details
     
