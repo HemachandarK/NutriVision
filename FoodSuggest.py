@@ -18,8 +18,14 @@ def foodsuggest():
         
         if not filtered_df.empty:
             st.write(f"The food '{food_name}' may be beneficial when the following diseases are present:")
+            disease_set = set()
             for _, row in filtered_df.iterrows():
                 diseases = row['Disease']
-                st.write(diseases)
+                disease_set.add(diseases)
+
+            # Print the unique diseases at the end
+            st.write("Diseases:")
+            for disease in disease_set:
+                st.write(disease)
         else:
             st.write(f"No diseases found for the food item '{food_name}'.")

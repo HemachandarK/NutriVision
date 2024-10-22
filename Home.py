@@ -8,13 +8,18 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 import threading
 import time
+from DiseaseDescription import description
+from Disease import disease
+from DiseasePredict import predict
+from FoodSuggest import foodsuggest
 
 
 def home():
     client = MongoClient('mongodb://localhost:27017/')
     db = client.food_det_db
     users_collection = db.user_details
-    anchor_ids = ["About", "Features", "Nutrient", "Login", "Contact"]
+    
+    anchor_ids = ["About", "Features", "Nutrient", "Login", "Disease"]
     
     st.markdown("""
         <style>
@@ -28,6 +33,12 @@ def home():
                 font-family:Aldrich;
                 background: #4CAF50;  /* Main background color */
                 color: #fff;  /* White text color */
+            }
+            h1 {
+                font-family: 'Aldrich', sans-serif;
+                color: :#800080;
+                padding: 10px;
+                border-radius: 5px;
             }
             
             h2, h3, h4, h5, h6 {
@@ -54,6 +65,7 @@ def home():
     """, unsafe_allow_html=True)
 
     # Scrollable navigation bar
+    st.title("NutriVision")
     scroll_navbar(
         anchor_ids=anchor_ids,
         key="navbar4",
@@ -149,26 +161,40 @@ def home():
     st.subheader("Login", anchor="Login")
     main_1()
 
-    st.subheader("Contact", anchor="Contact")
-    st.markdown("""
-        <div style="margin-bottom: 20px; 
-                    background: #ffffff; 
-                    color: #008000; 
-                    text-align: center; 
-                    padding: 20px; 
-                    border: 2px solid #800080; 
-                    border-radius: 15px;">  
-            <p>
-                If you have any questions or feedback, feel free to reach out to us:
-            </p>
-            <div>
-                <p><strong>Name:</strong> Your Name</p>
-                <p><strong>Email:</strong> your.email@example.com</p>
-                <p><strong>Message:</strong> Your Message</p>
-            </div>
-            <br>
-        </div>
-    """, unsafe_allow_html=True)
+    st.subheader("Disease Features", anchor="Disease")
+
+    # Initialize the session state for page navigation
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 'disease'
+
+    # Create navigation buttons using columns
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        if st.button("Disease"):
+            st.session_state.current_page = 'disease'
+
+    with col2:
+        if st.button("Description"):
+            st.session_state.current_page = 'description'
+
+    with col3:
+        if st.button("Predict"):
+            st.session_state.current_page = 'predict'
+
+    with col4:
+        if st.button("FoodSuggest"):
+            st.session_state.current_page = 'Foodsuggest'
+
+    # Render the corresponding page based on the current selection
+    if st.session_state.current_page == 'disease':
+        disease()
+    elif st.session_state.current_page == 'description':
+        description()
+    elif st.session_state.current_page == 'predict':
+        predict()
+    elif st.session_state.current_page == 'Foodsuggest':
+        foodsuggest()
 
 
     def send_email(to_email, subject, body):
