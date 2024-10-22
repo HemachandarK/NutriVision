@@ -344,7 +344,7 @@ def send_email(user_email, total_calories, daily_caloric_goal):
         st.error(f"Error sending email: {e}")
 
 def diet(fp):
-    col1, col2, col3 = st.columns(3)
+    
     st.header('Welcome')
     user_id = st.session_state.current_user[1] 
     # st.title(user_id)# user_id is a string, not an integer
@@ -413,7 +413,7 @@ def diet(fp):
                 st.success('Added')
         
         
-        
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.button('Calculate'):
                 rst1 = food_search(st.session_state.bk_list, data)
