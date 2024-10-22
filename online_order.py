@@ -12,20 +12,33 @@ from fuzzywuzzy import process
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from googleapiclient import discovery
-from oauth2client import file, client, tools
-from httplib2 import Http
+import json  # Make sure to import json
 
 def online_order():
+    # Access the client secret directly from the Streamlit secrets
     client_secret = st.secrets["client_secret"]
-    SCOPES = ['https://www.googleapis.com/auth/gmail.modify',
-            'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile']
+
+    # Define your scopes
+    SCOPES = [
+        'https://www.googleapis.com/auth/gmail.modify',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile'
+    ]
+    
+    # Store credentials
     store = file.Storage('storage.json')
     creds = store.get()
+    
     if not creds or creds.invalid:
-        flow = client.flow_from_clientsecrets(client_secret, SCOPES)
+        # Create the flow using the client_secret directly
+        flow = client.OAuth2WebServerFlow(
+            client_id=client_secret["client_id"],
+            client_secret=client_secret["client_secret"],
+            scope=SCOPES,
+            redirect_uri=client_secret["redirect_uris"][0]  # Use the first redirect URI
+        )
         creds = tools.run_flow(flow, store)
+        
     GMAIL = discovery.build('gmail', 'v1', http=creds.authorize(Http()))
     user_info_service = discovery.build('oauth2', 'v2', http=creds.authorize(Http()))
     user_info = user_info_service.userinfo().get().execute()
