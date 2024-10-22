@@ -26,7 +26,7 @@ def online_order():
     store = file.Storage('storage.json')
     creds = store.get()
     if not creds or creds.invalid:
-        flow = client.flow_from_clientsecrets('client_secret.json', SCOPES)
+        flow = client.flow_from_clientsecrets(client_secret, SCOPES)
         creds = tools.run_flow(flow, store)
     GMAIL = discovery.build('gmail', 'v1', http=creds.authorize(Http()))
     user_info_service = discovery.build('oauth2', 'v2', http=creds.authorize(Http()))
