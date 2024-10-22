@@ -15,7 +15,7 @@ from datetime import datetime
 import pytz
 ist = pytz.timezone('Asia/Kolkata')
 ist_time = datetime.now(ist)
-client = MongoClient("mongodb://localhost:27017/")
+client=MongoClient('mongodb+srv://hemachandark333:hems@cluster0.45yyp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 db = client['food_det_db']  # Database name
 users_collection = db['user_details']  # Collection name
 goals_collection = db['goals'] 
