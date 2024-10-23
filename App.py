@@ -237,6 +237,7 @@ def home():
                         send_email(email, "Dinner Reminder", "Please update your dinner details.")
 
             # Sleep for a while before checking again
+            break
             time.sleep(3600)  # Check every hour
 
     # Start the reminder thread
