@@ -43,10 +43,3 @@ NutriVision is a comprehensive nutrition and wellness management application tha
 3. Macronutrient information is retrieved and logged.
 4. User’s diet history is updated and shown on the dashboard.
 5. Based on intake and goals, recommendations or alerts are generated.
-
-## Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/NutriVision.git
-   cd NutriVision
